@@ -1,14 +1,47 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Rubik", sans-serif;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
 }
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
+
+
+
+@layer components {
+  .panel {
+    @apply bg-white/90 p-6 pb-8 rounded-2xl w-full no-scrollbar overflow-y-scroll max-w-100
+  }
+
+  .heading {
+    font-family: "EB Garamond", serif;
+  }
+
+  .input {
+    @apply w-full p-3 h-10 rounded-lg text-neutral-800 bg-white border border-gray-200 text-sm placeholder:text-sm focus:outline-4 focus:outline-blue-200;
+
+  }
+}
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }

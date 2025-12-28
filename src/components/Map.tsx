@@ -1,9 +1,11 @@
-import L from "leaflet";
-import { useEffect, useRef } from "react";
+import L, { LatLng } from "leaflet";
+import { useEffect, useRef, useState } from "react";
+import IncidentReport from "./IncidentReport";
 
 function Map() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -11,13 +13,6 @@ function Map() {
     const map = L.map(containerRef.current).setView([40.7128, 74.006], 13);
 
     mapRef.current = map;
-
-    // Tile layer (OpenStreetMap)
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
 
     // Attempt to center on user location
     if (navigator.geolocation) {
@@ -28,12 +23,33 @@ function Map() {
       });
     }
 
+    // Tile layer (OpenStreetMap)
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 50,
+      attribution:
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    map.addEventListener("click", function (e) {
+      setIncidentLocation(e.latlng);
+    });
+
     return () => {
       map.remove();
     };
   }, []);
 
-  return <div ref={containerRef} className="h-screen w-screen" />;
+  return (
+    <div className="relative">
+      <div ref={containerRef} className="z-0 h-screen w-screen" />
+      {incidentLocation && (
+        <IncidentReport
+          incidentLocation={incidentLocation}
+          closeModal={() => setIncidentLocation(null)}
+        />
+      )}
+    </div>
+  );
 }
 
 export default Map;
