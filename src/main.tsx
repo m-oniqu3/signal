@@ -2,7 +2,7 @@ import "leaflet/dist/leaflet.css";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import App from "./App.tsx";
-import Auth from "./components/auth/Auth.tsx";
+import Auth from "./components/Auth.tsx";
 import "./index.css";
 
 const root = document.getElementById("root");
