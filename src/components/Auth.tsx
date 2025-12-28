@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
 import { LoadingIcon } from "../icons";
 
 import { auth } from "../services/auth";
@@ -21,30 +20,6 @@ type Content = Record<
     "background-color": string;
   }
 >;
-
-// const content: Content = {
-//   "Sign Up": {
-//     title: "Create Account",
-//     content: "Create an account to get started.",
-//     button: "Sign In",
-//     "text-color": "text-indigo-300",
-//     "background-color": "bg-indigo-300",
-//   },
-//   "Log In": {
-//     title: "Log In",
-//     content: "Log in and report incidents.",
-//     button: "Log In",
-//     "text-color": "text-sky-300",
-//     "background-color": "bg-sky-300",
-//   },
-//   Anonymous: {
-//     title: " Sign In Anonymously.",
-//     content: " Get started. No email/password necessary.",
-//     button: " Sign In As Guest",
-//     "text-color": "text-orange-300",
-//     "background-color": "bg-orange-300",
-//   },
-// };
 
 const content: Content = {
   "Sign Up": {
@@ -83,8 +58,6 @@ function Auth() {
   } = useForm<Credentials>({
     resolver: zodResolver(authSchema),
   });
-
-  const navigate = useNavigate();
 
   // Tabs
   const rendered_tabs = tabs.map((t) => {
@@ -139,8 +112,6 @@ function Auth() {
       if (result?.error) {
         throw new Error(result.error);
       }
-
-      navigate("/");
     } catch (err) {
       setError("root", {
         message: err instanceof Error ? err.message : "Something went wrong.",
@@ -210,6 +181,7 @@ function Auth() {
                     </label>
 
                     <input
+                      type="password"
                       {...register("password")}
                       placeholder="lanakane"
                       className="input"
