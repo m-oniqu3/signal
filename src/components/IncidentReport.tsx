@@ -55,11 +55,11 @@ function IncidentReport(props: Props) {
   return (
     <Modal>
       <form className="panel flex flex-col gap-4" onSubmit={handleSubmitReport}>
-        <header className="relative pb-8">
-          <h1 className="text-2xl font-medium">Report An Incident</h1>
+        <header className="relative pb-4">
+          <h1 className="text-xl font-medium">Report An Incident</h1>
           <p className="text-sm">Tell us about the incident.</p>
 
-          <div className="text-sm mt-4 flex flex-col gap-1">
+          <div className="text-sm mt-4">
             {address && (
               <>
                 <p className="text-blue-300 text-base font-medium">
@@ -80,10 +80,10 @@ function IncidentReport(props: Props) {
           </button>
         </header>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
             <div>
-              <label htmlFor="title" className="font-medium">
+              <label htmlFor="title" className="text-sm font-medium">
                 Title
               </label>
               <p className="text-sm text-neutral-500">Sumarize the event.</p>
@@ -102,7 +102,7 @@ function IncidentReport(props: Props) {
 
           <div className="flex flex-col gap-2">
             <div>
-              <label htmlFor="content" className="font-medium">
+              <label htmlFor="content" className="text-sm font-medium">
                 Description
               </label>
               <p className="text-sm text-neutral-500">
@@ -111,18 +111,17 @@ function IncidentReport(props: Props) {
             </div>
 
             <textarea
-              minLength={20}
               onChange={(e) => handleReport("content", e.target.value)}
               className="input h-20 resize-none no-scrollbar"
               placeholder="Fire on 5th Ave rn. Smoke is wild and emergency crews are here."
               name="content"
             ></textarea>
           </div>
-
-          <Button type="submit" className="mt-6 bg-blue-300 text-white">
-            Submit
-          </Button>
         </div>
+
+        <Button type="submit" className="mt-6 bg-blue-300 text-white">
+          Submit
+        </Button>
       </form>
     </Modal>
   );

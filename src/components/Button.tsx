@@ -14,7 +14,7 @@ function Button(props: Props) {
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`px-4 h-10 rounded-lg text-sm font-semibold cursor-pointer grid place-items-center ${className}`}
+      className={`px-2 h-9 rounded-lg text-sm font-semibold cursor-pointer grid place-items-center ${className}`}
     >
       {children}
     </button>
