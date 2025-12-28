@@ -72,3 +72,9 @@ export default defineConfig([
 ])
 ```
 # signal
+
+## Database types
+
+After updating the Supabase schema, regenerate types:
+
+`npm run supabase:types`

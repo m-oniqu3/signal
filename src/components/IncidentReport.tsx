@@ -54,8 +54,8 @@ function IncidentReport(props: Props) {
 
   return (
     <Modal>
-      <form className="panel flex flex-col gap-4" onSubmit={handleSubmitReport}>
-        <header className="relative pb-4">
+      <form className="panel flex flex-col gap-6" onSubmit={handleSubmitReport}>
+        <header className="relative">
           <h1 className="text-xl font-medium">Report An Incident</h1>
           <p className="text-sm">Tell us about the incident.</p>
 
@@ -119,7 +119,7 @@ function IncidentReport(props: Props) {
           </div>
         </div>
 
-        <Button type="submit" className="mt-6 bg-blue-300 text-white">
+        <Button type="submit" className="h-9 bg-blue-300 text-white">
           Submit
         </Button>
       </form>

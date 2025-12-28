@@ -1,48 +1,90 @@
-import { useState, type FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import { LoadingIcon } from "../icons";
+
+import { auth } from "../services/auth";
+import { authSchema, type Credentials } from "../utils/validation/auth";
 import Button from "./Button";
 
-function Auth() {
-  const tabs = ["Signin", "Login", "Anonymous"];
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+const tabs = ["Sign Up", "Log In", "Anonymous"] as const;
+type Tab = (typeof tabs)[number];
 
-  // Dynamic content for form
-  const content = {
-    [tabs[0]]: {
-      title: "Create Account",
-      content: "Create an account to get started.",
-      button: "Sign In",
-      "text-color": "text-indigo-300",
-      "background-color": "bg-indigo-300",
-    },
-    [tabs[1]]: {
-      title: "Log In",
-      content: "Log in and report incidents.",
-      button: "Log In",
-      "text-color": "text-sky-300",
-      "background-color": "bg-sky-300",
-    },
-    [tabs[2]]: {
-      title: " Sign In Anonymously.",
-      content: " Get started. No email/password necessary.",
-      button: " Sign In As Guest",
-      "text-color": "text-orange-300",
-      "background-color": "bg-orange-300",
-    },
-  };
-
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-
-  function handleCredentials(
-    key: keyof typeof credentials,
-    val: (typeof credentials)[keyof typeof credentials]
-  ) {
-    setCredentials((prevState) => {
-      return {
-        ...prevState,
-        [key]: val,
-      };
-    });
+type Content = Record<
+  Tab,
+  {
+    title: string;
+    content: string;
+    button: string;
+    "text-color": string;
+    "background-color": string;
   }
+>;
+
+// const content: Content = {
+//   "Sign Up": {
+//     title: "Create Account",
+//     content: "Create an account to get started.",
+//     button: "Sign In",
+//     "text-color": "text-indigo-300",
+//     "background-color": "bg-indigo-300",
+//   },
+//   "Log In": {
+//     title: "Log In",
+//     content: "Log in and report incidents.",
+//     button: "Log In",
+//     "text-color": "text-sky-300",
+//     "background-color": "bg-sky-300",
+//   },
+//   Anonymous: {
+//     title: " Sign In Anonymously.",
+//     content: " Get started. No email/password necessary.",
+//     button: " Sign In As Guest",
+//     "text-color": "text-orange-300",
+//     "background-color": "bg-orange-300",
+//   },
+// };
+
+const content: Content = {
+  "Sign Up": {
+    title: "Join Us Today",
+    content:
+      "Create your account and start making a difference in your community.",
+    button: "Create Account",
+    "text-color": "text-indigo-300",
+    "background-color": "bg-indigo-300",
+  },
+  "Log In": {
+    title: "Welcome Back",
+    content: "Sign in to report incidents and track your submissions.",
+    button: "Log In",
+    "text-color": "text-sky-300",
+    "background-color": "bg-sky-300",
+  },
+  Anonymous: {
+    title: "Quick Access",
+    content: "Report incidents instantly without creating an account.",
+    button: "Continue as Guest",
+    "text-color": "text-orange-300",
+    "background-color": "bg-orange-300",
+  },
+};
+
+function Auth() {
+  const [activeTab, setActiveTab] = useState<Tab>(tabs[0]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<Credentials>({
+    resolver: zodResolver(authSchema),
+  });
+
+  const navigate = useNavigate();
 
   // Tabs
   const rendered_tabs = tabs.map((t) => {
@@ -62,99 +104,134 @@ function Auth() {
     );
   });
 
-  function signIn() {
-    console.log("signing in");
-  }
+  async function submitForm(credentials: Credentials) {
+    setError("root", { message: "" });
+    setIsLoading(true);
 
-  function logIn() {
-    console.log("logging in");
-  }
+    try {
+      let result;
 
-  function anonSignIn() {
-    console.log("anonymous signin");
-  }
+      switch (activeTab) {
+        case "Sign Up":
+          result = await auth({
+            mode: "signup",
+            email: credentials.email,
+            password: credentials.password,
+          });
+          break;
 
-  function handleSubmitForm(e: FormEvent) {
-    e.preventDefault();
+        case "Log In":
+          result = await auth({
+            mode: "login",
+            email: credentials.email,
+            password: credentials.password,
+          });
+          break;
 
-    switch (activeTab) {
-      case tabs[0]:
-        return signIn();
+        case "Anonymous":
+          result = await auth({ mode: "anonymous" });
+          break;
 
-      case tabs[1]:
-        return logIn();
+        default:
+          throw new Error("Invalid auth action.");
+      }
 
-      case tabs[2]:
-        return anonSignIn();
+      if (result?.error) {
+        throw new Error(result.error);
+      }
 
-      default:
-        throw new Error("Active tab type is not valid.");
+      navigate("/");
+    } catch (err) {
+      setError("root", {
+        message: err instanceof Error ? err.message : "Something went wrong.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <div className="h-full background relative">
-      <div className="wrapper h-full flex flex-col gap-10 max-w-sm justify-center ">
-        <ul className="list-none bg-white border border-gray-100 h-10 grid grid-cols-3 p-2 rounded-xl">
-          {rendered_tabs}
-        </ul>
+    <div className="h-full background relative grid place-items-center overflow-auto py-8">
+      {isLoading && <LoadingIcon className="animate-spin size-4" />}
 
-        <div className="max-w-xs h-60">
-          <form className="flex flex-col gap-6" onSubmit={handleSubmitForm}>
-            <header>
-              <h1
-                className={`text-xl font-medium ${content[activeTab]["text-color"]}`}
-              >
-                {content[activeTab].title}
-              </h1>
-              <p className="text-sm text-zinc-500">
-                {content[activeTab].content}
-              </p>
-            </header>
+      {!isLoading && (
+        <div className="wrapper flex flex-col gap-10 max-w-sm min-h-100">
+          <ul className="list-none bg-white border border-gray-100 h-10 grid grid-cols-3 p-2 rounded-xl">
+            {rendered_tabs}
+          </ul>
 
-            {activeTab !== tabs[2] && (
-              <>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </label>
+          {errors.root && (
+            <p className="input-error">
+              {activeTab !== "Log In"
+                ? "Could not Sign Up."
+                : "Could not Log In"}
+              &nbsp;
+              {errors.root.message}
+            </p>
+          )}
 
-                  <input
-                    type="email"
-                    placeholder="lanakane@isis.com"
-                    value={credentials.email}
-                    onChange={(e) => handleCredentials("email", e.target.value)}
-                    className="input"
-                    name="email"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </label>
-
-                  <input
-                    onChange={(e) =>
-                      handleCredentials("password", e.target.value)
-                    }
-                    className="input"
-                    placeholder="lanakane"
-                    name="password"
-                  />
-                </div>
-              </>
-            )}
-
-            <Button
-              type="submit"
-              className={`text-white ${content[activeTab]["background-color"]}`}
+          <div className="max-w-xs">
+            <form
+              className="flex flex-col gap-6"
+              onSubmit={handleSubmit(submitForm)}
             >
-              {content[activeTab].button}
-            </Button>
-          </form>
+              <header>
+                <h1
+                  className={`text-xl font-medium ${content[activeTab]["text-color"]}`}
+                >
+                  {content[activeTab].title}
+                </h1>
+                <p className="text-sm text-zinc-500">
+                  {content[activeTab].content}
+                </p>
+              </header>
+
+              {activeTab !== "Anonymous" && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="email" className="text-sm">
+                      Email
+                    </label>
+
+                    <input
+                      type="email"
+                      {...register("email")}
+                      placeholder="lanakane@isis.com"
+                      className="input"
+                    />
+                    {errors.email && (
+                      <p className="input-error">{errors.email.message}</p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="password" className="text-sm ">
+                      Password
+                    </label>
+
+                    <input
+                      {...register("password")}
+                      placeholder="lanakane"
+                      className="input"
+                    />
+                    {errors.password && (
+                      <p className="input-error">{errors.password.message}</p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={`text-white ${content[activeTab]["background-color"]}`}
+              >
+                {content[activeTab].button}
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
