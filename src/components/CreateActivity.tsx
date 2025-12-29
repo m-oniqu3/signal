@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../context/useAuth";
 import { CloseIcon, LoadingIcon } from "../icons";
-import { createActivity } from "../services/incidents/create-incident";
+import { createActivity } from "../services/incidents/create-activity";
 import type { Activity } from "../types/activity";
 import { type Address } from "../types/geo";
 import { reverseGeocode } from "../utils/reverse-geocode";
@@ -18,11 +18,12 @@ import Modal from "./Modal";
 type Props = {
   activityLocation: LatLng;
   addMarker: (activity: Activity) => void;
+  addActivity(activity: Activity): void;
   onClose: () => void;
 };
 
 function CreateActivity(props: Props) {
-  const { activityLocation, addMarker, onClose } = props;
+  const { activityLocation, addActivity, addMarker, onClose } = props;
   const [address, setAddress] = useState<Address | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
@@ -68,12 +69,15 @@ function CreateActivity(props: Props) {
       );
 
       console.log("add marker", activity);
+      addActivity(activity);
       addMarker(activity);
 
       reset();
       onClose();
     } catch (err) {
       console.error(err);
+
+      // todo : show error somewhere on the form
       setError("root", {
         message: err instanceof Error ? err.message : "Something went wrong.",
       });
@@ -161,7 +165,7 @@ function CreateActivity(props: Props) {
           className="h-9 bg-blue-300 text-white"
         >
           {isSubmitting ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <span>Submitting</span>
               <span>
                 <LoadingIcon className="animate-spin size-4" />

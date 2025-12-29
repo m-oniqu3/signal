@@ -8,7 +8,7 @@ export async function createActivity(
   lng: number,
   userId: string
 ): Promise<Activity> {
-  const { data: incident, error } = await supabase
+  const { data: activity, error } = await supabase
     .from("activities")
     .insert([{ title, content, lat, lng, user_id: userId }])
     .select()
@@ -16,5 +16,5 @@ export async function createActivity(
 
   if (error) throw error;
 
-  return incident;
+  return activity;
 }
