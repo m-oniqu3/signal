@@ -6,6 +6,7 @@ import { useAuth } from "../context/useAuth";
 import { CloseIcon, LoadingIcon } from "../icons";
 import { createIncident } from "../services/incidents/create-incident";
 import { type Address } from "../types/geo";
+import type { Incident } from "../types/incident";
 import { reverseGeocode } from "../utils/reverse-geocode";
 import {
   incidentSchema,
@@ -16,11 +17,12 @@ import Modal from "./Modal";
 
 type Props = {
   incidentLocation: LatLng;
+  addMarker: (incident: Incident) => void;
   onClose: () => void;
 };
 
 function IncidentReport(props: Props) {
-  const { incidentLocation, onClose } = props;
+  const { incidentLocation, addMarker, onClose } = props;
   const [address, setAddress] = useState<Address | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
@@ -66,6 +68,7 @@ function IncidentReport(props: Props) {
       );
 
       console.log("add marker", incident);
+      addMarker(incident);
       reset();
       onClose();
     } catch (err) {
@@ -77,14 +80,14 @@ function IncidentReport(props: Props) {
   }
 
   return (
-    <Modal>
+    <Modal closeModal={onClose}>
       <form
         className="panel flex flex-col gap-6"
         onSubmit={handleSubmit(handleSubmitReport)}
       >
         <header className="relative">
-          <h1 className="text-xl font-medium">Report An Incident</h1>
-          <p className="text-sm">Tell us about the incident.</p>
+          <h1 className="text-xl font-medium">What's happening?</h1>
+          <p className="text-sm">Tell us what's going on.</p>
 
           <div className="text-sm mt-4">
             {isSearching && (

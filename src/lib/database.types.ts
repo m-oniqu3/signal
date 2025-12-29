@@ -17,33 +17,33 @@ export type Database = {
       incidents: {
         Row: {
           content: string
-          created_at: string | null
+          created_at: string
           id: number
           lat: number
           lng: number
-          status: Database["public"]["Enums"]["incident_status"] | null
+          status: Database["public"]["Enums"]["incident_status"]
           title: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           content: string
-          created_at?: string | null
+          created_at?: string
           id?: number
           lat: number
           lng: number
-          status?: Database["public"]["Enums"]["incident_status"] | null
+          status?: Database["public"]["Enums"]["incident_status"]
           title: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           content?: string
-          created_at?: string | null
+          created_at?: string
           id?: number
           lat?: number
           lng?: number
-          status?: Database["public"]["Enums"]["incident_status"] | null
+          status?: Database["public"]["Enums"]["incident_status"]
           title?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
