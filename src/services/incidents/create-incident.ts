@@ -1,15 +1,15 @@
 import { supabase } from "../../lib/supabase";
-import type { Incident } from "../../types/incident";
+import type { Activity } from "../../types/activity";
 
-export async function createIncident(
+export async function createActivity(
   title: string,
   content: string,
   lat: number,
   lng: number,
   userId: string
-): Promise<Incident> {
+): Promise<Activity> {
   const { data: incident, error } = await supabase
-    .from("incidents")
+    .from("activities")
     .insert([{ title, content, lat, lng, user_id: userId }])
     .select()
     .single();

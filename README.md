@@ -73,8 +73,23 @@ export default defineConfig([
 ```
 # signal
 
-## Database types
+## database types
 
 After updating the Supabase schema, regenerate types:
 
 `npm run supabase:types`
+
+
+## progress
+```
+Map
+ ├─ fetch incidents
+ ├─ render markers
+ └─ opens IncidentReport
+
+Incident Report
+  ├─ creates incident
+  ├─ returns new incident to Map
+  └─ Map adds marker
+
+ ```                   

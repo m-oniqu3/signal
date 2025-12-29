@@ -1,39 +1,22 @@
 import L, { LatLng } from "leaflet";
 import { useEffect, useRef, useState } from "react";
-import type { Incident } from "../types/incident";
-import IncidentReport from "./IncidentReport";
+import type { Activity } from "../types/activity";
+import IncidentReport from "./CreateActivity";
 
-// Status marker helper
-type MarkerStatus = "open" | "pending" | "resolved";
-
-const statusColors: Record<MarkerStatus, { inner: string; outer: string }> = {
-  open: { inner: "#fd4238", outer: "#ffbcbcb2" },
-  pending: { inner: "#ff9500", outer: "#ffd8a893" },
-  resolved: { inner: "#34c759", outer: "#b8f1c4a6" },
-};
-
-function createStatusMarkerIcon(
-  status: MarkerStatus,
-  size = { width: 36, height: 36 }
-) {
-  const colors = statusColors[status];
-  const outerRadius = 13;
-  const innerRadius = 4;
-  const cx = size.width / 2;
-  const cy = size.height / 2;
-
-  const html = `
-    <svg width="${size.width}" height="${size.height}">
-      <circle cx="${cx}" cy="${cy}" r="${outerRadius}" fill="${colors.outer}" />
-      <circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="${colors.inner}" />
-    </svg>
-  `;
+function createMarkerIcon(size = 36) {
+  const center = size / 2;
 
   return L.divIcon({
-    html,
     className: "",
-    iconAnchor: [cx, cy],
-    popupAnchor: [1, -cy],
+    iconSize: [size, size],
+    iconAnchor: [center, center],
+    popupAnchor: [0, -center],
+    html: `
+      <svg width="${size}" height="${size}">
+        <circle cx="${center}" cy="${center}" r="18" fill="#c5f7d0a2" />
+        <circle cx="${center}" cy="${center}" r="4" fill="#75eeb4 " />
+      </svg>
+    `,
   });
 }
 
@@ -42,7 +25,7 @@ function Map() {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
 
-  const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
+  const [activityLocation, setActivityLocation] = useState<LatLng | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -62,13 +45,13 @@ function Map() {
 
     // Tile layer (OpenStreetMap)
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 50,
+      maxZoom: 40,
       attribution:
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
     map.addEventListener("click", function (e) {
-      setIncidentLocation(e.latlng);
+      setActivityLocation(e.latlng);
     });
 
     return () => {
@@ -77,30 +60,30 @@ function Map() {
   }, []);
 
   // Add a marker to map
-  function addMarker(incident: Incident) {
+  function addMarker(activity: Activity) {
     if (!mapRef.current) return;
 
-    const marker = L.marker([incident.lat, incident.lng], {
-      icon: createStatusMarkerIcon(incident.status),
+    const marker = L.marker([activity.lat, activity.lng], {
+      icon: createMarkerIcon(),
     }).addTo(mapRef.current);
 
-    marker.bindPopup(`<strong>${incident.title}</strong>`);
+    marker.bindPopup(`<strong>${activity.title}</strong>`);
 
     markersRef.current.push(marker);
 
     // Zoom to new marker
-    mapRef.current.setView([incident.lat, incident.lng], 16);
+    mapRef.current.setView([activity.lat, activity.lng], 16);
   }
 
   return (
     <div className="relative">
       <div ref={containerRef} className="z-0 h-screen w-screen" />
 
-      {incidentLocation && (
+      {activityLocation && (
         <IncidentReport
-          incidentLocation={incidentLocation}
+          activityLocation={activityLocation}
           addMarker={addMarker}
-          onClose={() => setIncidentLocation(null)}
+          onClose={() => setActivityLocation(null)}
         />
       )}
     </div>

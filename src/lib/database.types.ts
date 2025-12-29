@@ -14,14 +14,13 @@ export type Database = {
   }
   public: {
     Tables: {
-      incidents: {
+      activities: {
         Row: {
           content: string
           created_at: string
           id: number
           lat: number
           lng: number
-          status: Database["public"]["Enums"]["incident_status"]
           title: string
           user_id: string
         }
@@ -31,7 +30,6 @@ export type Database = {
           id?: number
           lat: number
           lng: number
-          status?: Database["public"]["Enums"]["incident_status"]
           title: string
           user_id: string
         }
@@ -41,7 +39,6 @@ export type Database = {
           id?: number
           lat?: number
           lng?: number
-          status?: Database["public"]["Enums"]["incident_status"]
           title?: string
           user_id?: string
         }
