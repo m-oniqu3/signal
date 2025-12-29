@@ -2,7 +2,8 @@ import L, { LatLng } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { getActivities } from "../services/incidents/get-activities";
 import type { Activity } from "../types/activity";
-import IncidentReport from "./CreateActivity";
+import ActivityPopup from "./activity/ActivityPopup";
+import IncidentReport from "./activity/CreateActivity";
 
 function createMarkerIcon(size = 36) {
   const center = size / 2;
@@ -30,6 +31,11 @@ function Map() {
   const [activities, setActivites] = useState<Record<number, Activity> | null>(
     null
   );
+  const [popup, setPopup] = useState<{
+    latlng: LatLng;
+    point: L.Point;
+    activity: Activity;
+  } | null>(null);
 
   // Add a marker to map
   function addMarker(activity: Activity) {
@@ -39,13 +45,51 @@ function Map() {
       icon: createMarkerIcon(),
     }).addTo(mapRef.current);
 
-    marker.bindPopup(`<strong>${activity.title}</strong>`);
+    // marker.bindPopup(createPopupHtml(activity));
+    marker.addEventListener("click", (e) => {
+      console.log(e);
+      setPopup({
+        latlng: e.latlng,
+        activity,
+        point: mapRef.current!.latLngToContainerPoint(e.latlng),
+      });
+    });
 
     markersRef.current.push(marker);
 
     // Zoom to new marker
-    mapRef.current.setView([activity.lat, activity.lng], 20);
+    mapRef.current.setView([activity.lat, activity.lng], 18);
   }
+
+  function addNewActivity(activity: Activity) {
+    setActivites((prevState) => ({
+      ...prevState,
+      [activity.id]: activity,
+    }));
+  }
+
+  useEffect(() => {
+    if (!mapRef.current || !popup) return;
+
+    const updatePosition = () => {
+      setPopup((prev) =>
+        prev
+          ? {
+              ...prev,
+              point: mapRef.current!.latLngToContainerPoint(prev.latlng),
+            }
+          : null
+      );
+    };
+
+    mapRef.current.on("move", updatePosition);
+    mapRef.current.on("zoom", updatePosition);
+
+    return () => {
+      mapRef.current?.off("move", updatePosition);
+      mapRef.current?.off("zoom", updatePosition);
+    };
+  }, [popup]);
 
   // Get all activies from the db
   useEffect(() => {
@@ -82,10 +126,11 @@ function Map() {
     if (activities) addActivityToMap(activities);
   }, [activities]);
 
+  // Create the map
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const map = L.map(containerRef.current).setView([40.7128, 74.006], 16);
+    const map = L.map(containerRef.current).setView([40.7128, 74.006], 13);
 
     mapRef.current = map;
 
@@ -93,7 +138,7 @@ function Map() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
-        map.setView([latitude, longitude], 16); // recenter map
+        map.setView([latitude, longitude], 13); // recenter map
         console.log("User location:", latitude, longitude);
       });
     }
@@ -114,15 +159,8 @@ function Map() {
     };
   }, []);
 
-  function addNewActivity(activity: Activity) {
-    setActivites((prevState) => ({
-      ...prevState,
-      [activity.id]: activity,
-    }));
-  }
-
   return (
-    <div className="relative">
+    <div className="">
       <div ref={containerRef} className="z-0 h-screen w-screen" />
 
       {activityLocation && (
@@ -132,6 +170,23 @@ function Map() {
           addMarker={addMarker}
           onClose={() => setActivityLocation(null)}
         />
+      )}
+
+      {popup && (
+        <div
+          className="absolute z-50 pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            left: popup.point.x,
+            top: popup.point.y,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <ActivityPopup
+            activity={popup.activity}
+            closePopup={() => setPopup(null)}
+          />
+        </div>
       )}
     </div>
   );

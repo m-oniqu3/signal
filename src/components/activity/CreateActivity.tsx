@@ -1,19 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import type { LatLng } from "leaflet";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useAuth } from "../context/useAuth";
-import { CloseIcon, LoadingIcon } from "../icons";
-import { createActivity } from "../services/incidents/create-activity";
-import type { Activity } from "../types/activity";
-import { type Address } from "../types/geo";
-import { reverseGeocode } from "../utils/reverse-geocode";
+import { useAuth } from "../../context/useAuth";
+import { CloseIcon, LoadingIcon } from "../../icons";
+import { createActivity } from "../../services/incidents/create-activity";
+import type { Activity } from "../../types/activity";
+import { reverseGeocode } from "../../utils/reverse-geocode";
+
+import type { Address } from "../../types/geo";
 import {
   incidentSchema,
   type IncidentFormData,
-} from "../utils/validation/incident";
-import Button from "./Button";
-import Modal from "./Modal";
+} from "../../utils/validation/incident";
+import Button from "../Button";
+import Modal from "../Modal";
 
 type Props = {
   activityLocation: LatLng;
