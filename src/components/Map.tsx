@@ -42,10 +42,11 @@ function Map() {
   return (
     <div className="relative">
       <div ref={containerRef} className="z-0 h-screen w-screen" />
+
       {incidentLocation && (
         <IncidentReport
           incidentLocation={incidentLocation}
-          closeModal={() => setIncidentLocation(null)}
+          onClose={() => setIncidentLocation(null)}
         />
       )}
     </div>
