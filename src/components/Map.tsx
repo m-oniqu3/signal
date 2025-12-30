@@ -1,103 +1,77 @@
 import L, { LatLng } from "leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getIncidents } from "../services/incidents/get-incidents";
-import type { Incident } from "../types/incident";
+import type { IncidentSummary } from "../types/incident";
 import { createIncidentMarkerIcon } from "../utils/create-marker-icon";
-import IncidentReport from "./activity/CreateIncident";
+import CreateIncident from "./incident/CreateIncident";
 
-// function createPopupHtml(activity: Activity) {
-//   const container = document.createElement("div");
-//   const root = createRoot(container);
-//   root.render(<ActivityPopup activity={activity} />);
-//   return container;
-// }
-
+/**
+ *
+ * Renders an interactive Leaflet map that displays incident markers and allows users to report new incidents.
+ *
+ * Features:
+ * - Initializes a Leaflet map centered on NYC (or user's geolocation if available)
+ * - Fetches and displays existing incidents from the database as markers
+ * - Allows users to click anywhere on the map to report a new incident
+ * - Prevents duplicate markers from being rendered
+ * - Automatically zooms to newly created incidents
+ * - Cleans up all markers and map resources on component unmount
+ */
 function Map() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const renderedIdsRef = useRef<Set<number>>(new Set());
 
   const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
-  // const [incidents, setIncidents] = useState<Record<number, Incident> | null>(
-  //   null
-  // );
 
-  // Add a marker to map
-  function addMarker(incident: Incident) {
-    if (!mapRef.current) return;
+  // Add a marker to map (wrapped in useCallback for stable reference)
+  const addMarker = useCallback(
+    (incident: IncidentSummary, shouldZoom = false) => {
+      if (!mapRef.current) return;
 
-    const marker = L.marker([incident.lat, incident.lng], {
-      icon: createIncidentMarkerIcon(incident.status),
-    }).addTo(mapRef.current);
+      // Prevent duplicates
+      if (renderedIdsRef.current.has(incident.id)) return;
 
-    // marker.bindPopup(createPopupHtml(activity));
-    marker.bindPopup(`<p className="text-sm">${incident.title}</>`);
+      renderedIdsRef.current.add(incident.id);
 
-    markersRef.current.push(marker);
+      const marker = L.marker([incident.lat, incident.lng], {
+        icon: createIncidentMarkerIcon(incident.status),
+      }).addTo(mapRef.current);
 
-    // Zoom to new marker
-    mapRef.current.setView([incident.lat, incident.lng], 18);
-  }
+      markersRef.current.push(marker);
 
-  // function recordNewIncident(incident: Incident) {
-  //   setIncidents((prevState) => ({
-  //     ...prevState,
-  //     [incident.id]: incident,
-  //   }))
-  // }
-
-  // Get all activies from the db
-  useEffect(() => {
-    // async function fetchIncidents() {
-
-    //     const incidents = await getIncidents();
-
-    //     if (!incidents) {
-    //       setIncidents(null);
-    //       return null;
-    //     }
-
-    //   //   const incidentMap = incidents.reduce((acc, cur) => {
-    //   //     acc[cur.id] = cur;
-    //   //     return acc;
-    //   //   }, {} as Record<number, Incident>);
-
-    //   // setIncidents(incidentMap);
-
-    //     return incidents
-
-    // }
-
-    // Add incident to the map
-    getIncidents()
-      .then((incidents) => {
-        if (incidents) {
-          incidents.forEach((i) => addMarker(i));
-        }
-      })
-      .catch((err) => console.log(err));
-  }, []);
+      // Zoom to new marker only if requested
+      if (shouldZoom) {
+        mapRef.current.setView([incident.lat, incident.lng], 18);
+      }
+    },
+    []
+  );
 
   // Create the map
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const map = L.map(containerRef.current).setView([40.7128, 74.006], 13);
+    const map = L.map(containerRef.current).setView([40.7128, -74.006], 13);
 
     mapRef.current = map;
+
+    // Capture refs for cleanup
+    const markers = markersRef.current;
+    const renderedIds = renderedIdsRef.current;
 
     // Attempt to center on user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
         map.setView([latitude, longitude], 13); // recenter map
-        console.log("User location:", latitude, longitude);
       });
     }
 
     // Tile layer (OpenStreetMap)
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 40,
+      maxZoom: 19,
       attribution:
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
@@ -106,19 +80,31 @@ function Map() {
       setIncidentLocation(e.latlng);
     });
 
+    // Fetch incidents after map is initialized
+    getIncidents()
+      .then((incidents) => {
+        if (incidents) {
+          incidents.forEach((i) => addMarker(i, false));
+        }
+      })
+      .catch((err) => console.error("Failed to load incidents:", err));
+
     return () => {
+      markers.forEach((marker) => marker.remove());
+      markers.length = 0;
+      renderedIds.clear();
       map.remove();
     };
-  }, []);
+  }, [addMarker]);
 
   return (
     <div className="">
       <div ref={containerRef} className="z-0 h-screen w-screen" />
 
       {incidentLocation && (
-        <IncidentReport
+        <CreateIncident
           incidentLocation={incidentLocation}
-          addMarker={addMarker}
+          addMarker={(i) => addMarker(i, true)}
           onClose={() => setIncidentLocation(null)}
         />
       )}

@@ -10,3 +10,11 @@ export type Incident = {
   status: IncidentStatus;
   created_at: string;
 };
+
+export type IncidentSummary = {
+  id: number;
+  user_id: string;
+  lat: number;
+  lng: number;
+  status: IncidentStatus;
+};

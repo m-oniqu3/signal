@@ -20,11 +20,11 @@ import Modal from "../Modal";
 type Props = {
   incidentLocation: LatLng;
   addMarker: (incident: Incident) => void;
-  // recordNewIncident(incident: Incident): void;
+
   onClose: () => void;
 };
 
-function CreateActivity(props: Props) {
+function CreateIncident(props: Props) {
   const { incidentLocation, addMarker, onClose } = props;
   const [address, setAddress] = useState<Address | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -72,7 +72,6 @@ function CreateActivity(props: Props) {
 
       console.log("add marker", incident);
       addMarker(incident);
-      // addMarker(activity);
 
       reset();
       onClose();
@@ -96,7 +95,7 @@ function CreateActivity(props: Props) {
           <h1 className="text-xl font-medium">What's happening?</h1>
           <p className="text-sm">Tell us what's going on.</p>
 
-          <div className="text-sm mt-4">
+          <div className="text-sm mt-4 max-w-xs">
             {isSearching && (
               <p className="text-sm text-zinc-500">Searching for address...</p>
             )}
@@ -105,7 +104,7 @@ function CreateActivity(props: Props) {
                 <p className="text-blue-300 text-base font-medium">
                   {address.name || (address.displayName && "Near")}
                 </p>
-                <p className="line-clamp-2 text-xs text-zinc-500">
+                <p className="line-clamp-2 text-xs text-zinc-500 w-full">
                   {address.displayName}
                 </p>
               </>
@@ -182,4 +181,4 @@ function CreateActivity(props: Props) {
   );
 }
 
-export default CreateActivity;
+export default CreateIncident;
