@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../context/useAuth";
 import { CloseIcon, LoadingIcon } from "../../icons";
-import { createActivity } from "../../services/incidents/create-activity";
-import type { Activity } from "../../types/activity";
+import { createIncident } from "../../services/incidents/create-incident";
+import type { Incident } from "../../types/incident";
 import { reverseGeocode } from "../../utils/reverse-geocode";
 
 import type { Address } from "../../types/geo";
@@ -18,14 +18,14 @@ import Button from "../Button";
 import Modal from "../Modal";
 
 type Props = {
-  activityLocation: LatLng;
-  addMarker: (activity: Activity) => void;
-  addActivity(activity: Activity): void;
+  incidentLocation: LatLng;
+  addMarker: (incident: Incident) => void;
+  // recordNewIncident(incident: Incident): void;
   onClose: () => void;
 };
 
 function CreateActivity(props: Props) {
-  const { activityLocation, addActivity, addMarker, onClose } = props;
+  const { incidentLocation, addMarker, onClose } = props;
   const [address, setAddress] = useState<Address | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
@@ -43,7 +43,7 @@ function CreateActivity(props: Props) {
   useEffect(() => {
     async function getAddress() {
       setIsSearching(true);
-      const { lat, lng } = activityLocation;
+      const { lat, lng } = incidentLocation;
       const data = await reverseGeocode(lat, lng);
 
       if (!data) return;
@@ -52,17 +52,17 @@ function CreateActivity(props: Props) {
       setIsSearching(false);
     }
 
-    if (activityLocation) getAddress();
-  }, [activityLocation]);
+    if (incidentLocation) getAddress();
+  }, [incidentLocation]);
 
   async function handleSubmitReport(formData: IncidentFormData) {
     console.log(formData);
     if (!user) return;
 
-    const { lat, lng } = activityLocation;
+    const { lat, lng } = incidentLocation;
 
     try {
-      const activity = await createActivity(
+      const incident = await createIncident(
         formData.title,
         formData.content ?? "",
         lat,
@@ -70,9 +70,9 @@ function CreateActivity(props: Props) {
         user.id
       );
 
-      console.log("add marker", activity);
-      addActivity(activity);
-      addMarker(activity);
+      console.log("add marker", incident);
+      addMarker(incident);
+      // addMarker(activity);
 
       reset();
       onClose();

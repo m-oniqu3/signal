@@ -1,131 +1,82 @@
 import L, { LatLng } from "leaflet";
 import { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { getActivities } from "../services/incidents/get-activities";
-import type { Activity } from "../types/activity";
-import ActivityPopup from "./activity/ActivityPopup";
-import IncidentReport from "./activity/CreateActivity";
+import { getIncidents } from "../services/incidents/get-incidents";
+import type { Incident } from "../types/incident";
+import { createIncidentMarkerIcon } from "../utils/create-marker-icon";
+import IncidentReport from "./activity/CreateIncident";
 
-function createMarkerIcon(size = 36) {
-  const center = size / 2;
-
-  return L.divIcon({
-    className: "",
-    iconSize: [size, size],
-    iconAnchor: [center, center],
-    popupAnchor: [0, -center],
-    html: `
-      <svg width="${size}" height="${size}">
-        <circle cx="${center}" cy="${center}" r="16" fill="#f19101c9" />
-        <circle cx="${center}" cy="${center}" r="4" fill="#0581a7 " />
-      </svg>
-    `,
-  });
-}
-
-function createPopupHtml(activity: Activity) {
-  const container = document.createElement("div");
-  const root = createRoot(container);
-  root.render(<ActivityPopup activity={activity} />);
-  return container;
-}
+// function createPopupHtml(activity: Activity) {
+//   const container = document.createElement("div");
+//   const root = createRoot(container);
+//   root.render(<ActivityPopup activity={activity} />);
+//   return container;
+// }
 
 function Map() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
 
-  const [activityLocation, setActivityLocation] = useState<LatLng | null>(null);
-  const [activities, setActivites] = useState<Record<number, Activity> | null>(
-    null
-  );
-  const [popup, setPopup] = useState<{
-    latlng: LatLng;
-    point: L.Point;
-    activity: Activity;
-  } | null>(null);
+  const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
+  // const [incidents, setIncidents] = useState<Record<number, Incident> | null>(
+  //   null
+  // );
 
   // Add a marker to map
-  function addMarker(activity: Activity) {
+  function addMarker(incident: Incident) {
     if (!mapRef.current) return;
 
-    const marker = L.marker([activity.lat, activity.lng], {
-      icon: createMarkerIcon(),
+    const marker = L.marker([incident.lat, incident.lng], {
+      icon: createIncidentMarkerIcon(incident.status),
     }).addTo(mapRef.current);
 
     // marker.bindPopup(createPopupHtml(activity));
-    marker.bindPopup(createPopupHtml(activity));
+    marker.bindPopup(`<p className="text-sm">${incident.title}</>`);
 
     markersRef.current.push(marker);
 
     // Zoom to new marker
-    mapRef.current.setView([activity.lat, activity.lng], 18);
+    mapRef.current.setView([incident.lat, incident.lng], 18);
   }
 
-  function addNewActivity(activity: Activity) {
-    setActivites((prevState) => ({
-      ...prevState,
-      [activity.id]: activity,
-    }));
-  }
-
-  useEffect(() => {
-    if (!mapRef.current || !popup) return;
-
-    const updatePosition = () => {
-      setPopup((prev) =>
-        prev
-          ? {
-              ...prev,
-              point: mapRef.current!.latLngToContainerPoint(prev.latlng),
-            }
-          : null
-      );
-    };
-
-    mapRef.current.on("move", updatePosition);
-    mapRef.current.on("zoom", updatePosition);
-
-    return () => {
-      mapRef.current?.off("move", updatePosition);
-      mapRef.current?.off("zoom", updatePosition);
-    };
-  }, [popup]);
+  // function recordNewIncident(incident: Incident) {
+  //   setIncidents((prevState) => ({
+  //     ...prevState,
+  //     [incident.id]: incident,
+  //   }))
+  // }
 
   // Get all activies from the db
   useEffect(() => {
-    async function getAllActivities() {
-      try {
-        const activities = await getActivities();
+    // async function fetchIncidents() {
 
-        if (!activities) {
-          setActivites(null);
-          return;
+    //     const incidents = await getIncidents();
+
+    //     if (!incidents) {
+    //       setIncidents(null);
+    //       return null;
+    //     }
+
+    //   //   const incidentMap = incidents.reduce((acc, cur) => {
+    //   //     acc[cur.id] = cur;
+    //   //     return acc;
+    //   //   }, {} as Record<number, Incident>);
+
+    //   // setIncidents(incidentMap);
+
+    //     return incidents
+
+    // }
+
+    // Add incident to the map
+    getIncidents()
+      .then((incidents) => {
+        if (incidents) {
+          incidents.forEach((i) => addMarker(i));
         }
-        const activityMap = activities.reduce((acc, cur) => {
-          acc[cur.id] = cur;
-
-          return acc;
-        }, {} as Record<number, Activity>);
-        setActivites(activityMap);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    getAllActivities();
+      })
+      .catch((err) => console.log(err));
   }, []);
-
-  //When the activities update, add the marker to the map
-  useEffect(() => {
-    console.log(activities);
-    function addActivityToMap(activities: Record<number, Activity>) {
-      const ids = Object.keys(activities);
-      ids.forEach((id) => addMarker(activities[+id]));
-    }
-
-    if (activities) addActivityToMap(activities);
-  }, [activities]);
 
   // Create the map
   useEffect(() => {
@@ -152,7 +103,7 @@ function Map() {
     }).addTo(map);
 
     map.addEventListener("click", function (e) {
-      setActivityLocation(e.latlng);
+      setIncidentLocation(e.latlng);
     });
 
     return () => {
@@ -164,30 +115,12 @@ function Map() {
     <div className="">
       <div ref={containerRef} className="z-0 h-screen w-screen" />
 
-      {activityLocation && (
+      {incidentLocation && (
         <IncidentReport
-          activityLocation={activityLocation}
-          addActivity={addNewActivity}
+          incidentLocation={incidentLocation}
           addMarker={addMarker}
-          onClose={() => setActivityLocation(null)}
+          onClose={() => setIncidentLocation(null)}
         />
-      )}
-
-      {popup && (
-        <div
-          className="absolute z-50 pointer-events-auto"
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            left: popup.point.x,
-            top: popup.point.y,
-            transform: "translate(-50%, -100%)",
-          }}
-        >
-          <ActivityPopup
-            activity={popup.activity}
-            // closePopup={() => setPopup(null)}
-          />
-        </div>
       )}
     </div>
   );

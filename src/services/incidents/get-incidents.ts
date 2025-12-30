@@ -1,9 +1,9 @@
 import { supabase } from "../../lib/supabase";
-import type { Activity } from "../../types/activity";
+import type { Incident } from "../../types/incident";
 
-export async function getActivities(): Promise<Activity[] | null> {
+export async function getIncidents(): Promise<Incident[] | null> {
   const { data: activity, error } = await supabase
-    .from("activities")
+    .from("incidents")
     .select("*");
   if (error) throw error;
 
