@@ -1,9 +1,11 @@
 import L, { LatLng } from "leaflet";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getIncidents } from "../services/incidents/get-incidents";
+import { getIncidentsInBounds } from "../services/incidents/get-incidents";
 import type { IncidentSummary } from "../types/incident";
 import { createIncidentMarkerIcon } from "../utils/create-marker-icon";
 import CreateIncident from "./incident/CreateIncident";
+
+import "leaflet.markercluster";
 
 /**
  *
@@ -20,15 +22,17 @@ import CreateIncident from "./incident/CreateIncident";
 function Map() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
+  // const markersRef = useRef<L.Marker[]>([]);
   const renderedIdsRef = useRef<Set<number>>(new Set());
+  const clusterRef = useRef<L.LayerGroup | null>(null);
+  const fetchTimeoutRef = useRef<number | null>(null);
 
   const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
 
   // Add a marker to map (wrapped in useCallback for stable reference)
   const addMarker = useCallback(
     (incident: IncidentSummary, shouldZoom = false) => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || !clusterRef.current) return;
 
       // Prevent duplicates
       if (renderedIdsRef.current.has(incident.id)) return;
@@ -37,9 +41,9 @@ function Map() {
 
       const marker = L.marker([incident.lat, incident.lng], {
         icon: createIncidentMarkerIcon(incident.status),
-      }).addTo(mapRef.current);
+      });
 
-      markersRef.current.push(marker);
+      clusterRef.current.addLayer(marker);
 
       // Zoom to new marker only if requested
       if (shouldZoom) {
@@ -48,6 +52,35 @@ function Map() {
     },
     []
   );
+
+  const fetchIncidentsInView = useCallback(async () => {
+    // Clear previous timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Debounce: wait 300ms after user stops moving
+    fetchTimeoutRef.current = setTimeout(async () => {
+      if (!mapRef.current) return;
+
+      try {
+        const bounds = mapRef.current.getBounds();
+
+        const incidents = await getIncidentsInBounds({
+          south: bounds.getSouth(),
+          north: bounds.getNorth(),
+          west: bounds.getWest(),
+          east: bounds.getEast(),
+        });
+
+        incidents?.forEach((incident) => {
+          addMarker(incident);
+        });
+      } catch (error) {
+        console.log("Failed to load incidents:", error);
+      }
+    }, 300);
+  }, [addMarker]);
 
   // Create the map
   useEffect(() => {
@@ -58,7 +91,6 @@ function Map() {
     mapRef.current = map;
 
     // Capture refs for cleanup
-    const markers = markersRef.current;
     const renderedIds = renderedIdsRef.current;
 
     // Attempt to center on user location
@@ -76,26 +108,25 @@ function Map() {
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
+    clusterRef.current = L.markerClusterGroup();
+    map.addLayer(clusterRef.current);
+
     map.addEventListener("click", function (e) {
       setIncidentLocation(e.latlng);
     });
 
     // Fetch incidents after map is initialized
-    getIncidents()
-      .then((incidents) => {
-        if (incidents) {
-          incidents.forEach((i) => addMarker(i, false));
-        }
-      })
-      .catch((err) => console.error("Failed to load incidents:", err));
+    fetchIncidentsInView();
+
+    mapRef.current.on("moveend", fetchIncidentsInView);
 
     return () => {
-      markers.forEach((marker) => marker.remove());
-      markers.length = 0;
       renderedIds.clear();
+      clusterRef.current?.clearLayers();
+      map.off("moveend", fetchIncidentsInView);
       map.remove();
     };
-  }, [addMarker]);
+  }, [fetchIncidentsInView]);
 
   return (
     <div className="">

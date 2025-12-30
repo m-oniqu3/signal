@@ -25,25 +25,42 @@
   }
 }
 
-.leaflet-popup-content-wrapper {
-  /* background-color: #fff; */
-  /* Red background */
-  /* color: #fff; */
-  /* White text */
-  border-radius: 20px;
-  /* Square corners */
-  padding: 5px 0 5px;
-  /* margin: 0 0 12px; */
-  /* Adjust padding */
-  /* box-shadow: none; */
-  /* Remove shadow */
-  /* width: 100px; */
+/* Cluster circle */
+.marker-cluster {
+  background-color: rgba(209, 88, 209, 0.9) !important;
+  /* bright orange */
+  border: 4px solid rgba(111, 123, 97, 0.354) !important;
+  border-radius: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center;
 }
 
-.leaflet-popup-tip {
+/* Number text */
+.marker-cluster div {
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  /* text-shadow: 0 0 3px rgba(0, 0, 0, 0.5); */
+}
 
-  /* background: #e74c3c; */
-  /* Match the tip color to the wrapper */
+/* Optional: different sizes */
+.marker-cluster-small {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+}
+
+.marker-cluster-medium {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+}
+
+.marker-cluster-large {
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
 }
 
 
