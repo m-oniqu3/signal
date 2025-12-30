@@ -1,5 +1,6 @@
 import L, { LatLng } from "leaflet";
 import { useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { getActivities } from "../services/incidents/get-activities";
 import type { Activity } from "../types/activity";
 import ActivityPopup from "./activity/ActivityPopup";
@@ -20,6 +21,13 @@ function createMarkerIcon(size = 36) {
       </svg>
     `,
   });
+}
+
+function createPopupHtml(activity: Activity) {
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  root.render(<ActivityPopup activity={activity} />);
+  return container;
 }
 
 function Map() {
@@ -46,14 +54,7 @@ function Map() {
     }).addTo(mapRef.current);
 
     // marker.bindPopup(createPopupHtml(activity));
-    marker.addEventListener("click", (e) => {
-      console.log(e);
-      setPopup({
-        latlng: e.latlng,
-        activity,
-        point: mapRef.current!.latLngToContainerPoint(e.latlng),
-      });
-    });
+    marker.bindPopup(createPopupHtml(activity));
 
     markersRef.current.push(marker);
 
@@ -184,7 +185,7 @@ function Map() {
         >
           <ActivityPopup
             activity={popup.activity}
-            closePopup={() => setPopup(null)}
+            // closePopup={() => setPopup(null)}
           />
         </div>
       )}

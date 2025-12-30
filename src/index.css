@@ -25,7 +25,26 @@
   }
 }
 
+.leaflet-popup-content-wrapper {
+  /* background-color: #fff; */
+  /* Red background */
+  /* color: #fff; */
+  /* White text */
+  border-radius: 20px;
+  /* Square corners */
+  padding: 5px 0 5px;
+  /* margin: 0 0 12px; */
+  /* Adjust padding */
+  /* box-shadow: none; */
+  /* Remove shadow */
+  /* width: 100px; */
+}
 
+.leaflet-popup-tip {
+
+  /* background: #e74c3c; */
+  /* Match the tip color to the wrapper */
+}
 
 
 @layer components {
@@ -49,6 +68,9 @@
   .input-error {
     @apply text-sm text-red-400 relative -top-1
   }
+
+  /* Example: Make all popups red with square corners */
+
 }
 
 @utility no-scrollbar {
