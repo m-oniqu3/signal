@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       incidents: {
         Row: {
+          address_display: string
+          address_name: string
           content: string
           created_at: string
           id: number
@@ -26,6 +28,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address_display?: string
+          address_name?: string
           content: string
           created_at?: string
           id?: number
@@ -36,6 +40,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address_display?: string
+          address_name?: string
           content?: string
           created_at?: string
           id?: number

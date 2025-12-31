@@ -14,7 +14,7 @@ export async function getIncidentsInBounds(
 
   const { data: incident, error } = await supabase
     .from("incidents")
-    .select("id, user_id, lat, lng, status")
+    .select("id, user_id, lat, lng, status, address_name, address_display")
     .gte("lat", south)
     .lte("lat", north)
     .gte("lng", west)

@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import type { Address } from "../../types/geo";
 import type { Incident } from "../../types/incident";
 
 export async function createIncident(
@@ -6,11 +7,22 @@ export async function createIncident(
   content: string,
   lat: number,
   lng: number,
-  userId: string
+  userId: string,
+  address: Address | null
 ): Promise<Incident> {
   const { data: incident, error } = await supabase
     .from("incidents")
-    .insert([{ title, content, lat, lng, user_id: userId }])
+    .insert([
+      {
+        title,
+        content,
+        lat,
+        lng,
+        user_id: userId,
+        address_name: address?.name ?? "",
+        address_display: address?.displayName ?? "",
+      },
+    ])
     .select()
     .single();
 

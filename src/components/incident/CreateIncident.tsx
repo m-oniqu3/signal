@@ -67,7 +67,8 @@ function CreateIncident(props: Props) {
         formData.content ?? "",
         lat,
         lng,
-        user.id
+        user.id,
+        address ?? null
       );
 
       console.log("add marker", incident);

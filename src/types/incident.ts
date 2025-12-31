@@ -8,6 +8,8 @@ export type Incident = {
   lat: number;
   lng: number;
   status: IncidentStatus;
+  address_name: string;
+  address_display: string;
   created_at: string;
 };
 
@@ -17,4 +19,6 @@ export type IncidentSummary = {
   lat: number;
   lng: number;
   status: IncidentStatus;
+  address_name: string;
+  address_display: string;
 };
