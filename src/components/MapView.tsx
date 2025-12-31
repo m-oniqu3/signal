@@ -3,23 +3,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getIncidentsInBounds } from "../services/incidents/get-incidents";
 import type { IncidentSummary } from "../types/incident";
 import { createIncidentMarkerIcon } from "../utils/create-marker-icon";
+import debounce from "../utils/debounce";
 import CreateIncident from "./incident/CreateIncident";
 
-import "leaflet.markercluster";
-
-/**
- * Interactive incident map with viewport-based fetching and marker clustering.
- *
- * Handles map initialization, incident fetching, marker rendering,
- * clustering, and user-created incident placement with automatic zooming.
- */
-
-function Map() {
+function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  // const markersRef = useRef<L.Marker[]>([]);
   const renderedIdsRef = useRef<Set<number>>(new Set());
   const clusterRef = useRef<L.LayerGroup | null>(null);
-  const debounceTimeoutRef = useRef<number | null>(null);
+  // const debounceTimeoutRef = useRef<number | null>(null);
 
   const [incidentLocation, setIncidentLocation] = useState<LatLng | null>(null);
 
@@ -46,42 +39,6 @@ function Map() {
     },
     []
   );
-
-  // Fetch incidents that fall within the current map bounds.
-  const fetchIncidentsInView = useCallback(async () => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    try {
-      const bounds = map.getBounds();
-
-      const incidents = await getIncidentsInBounds({
-        south: bounds.getSouth(),
-        north: bounds.getNorth(),
-        west: bounds.getWest(),
-        east: bounds.getEast(),
-      });
-
-      incidents?.forEach((incident) => {
-        addMarker(incident);
-      });
-    } catch (error) {
-      console.log("Failed to load incidents:", error);
-    }
-  }, [addMarker]);
-
-  // Debounce using ref
-  const fetchIncidentsDebounced = useCallback(() => {
-    // Clear previous timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    // Set new timeout
-    debounceTimeoutRef.current = setTimeout(() => {
-      fetchIncidentsInView();
-    }, 300);
-  }, [fetchIncidentsInView]);
 
   // Create the map
   useEffect(() => {
@@ -116,18 +73,54 @@ function Map() {
       setIncidentLocation(e.latlng);
     });
 
-    map.on("moveend", fetchIncidentsDebounced);
+    // map.on("moveend", fetchIncidentsDebounced);
 
-    // Fetch incidents after map is initialized
-    fetchIncidentsInView();
+    // // Fetch incidents after map is initialized
+    // fetchIncidentsInView();
 
     return () => {
       renderedIds.clear();
       clusterRef.current?.clearLayers();
-      map.off("moveend", fetchIncidentsDebounced);
+      // map.off("moveend", fetchIncidentsDebounced);
       map.remove();
     };
-  }, [fetchIncidentsDebounced, fetchIncidentsInView]);
+  }, []);
+
+  // fetch incidents in view
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const fetchInView = debounce(async () => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      const bounds = map.getBounds();
+
+      try {
+        const incidents = await getIncidentsInBounds({
+          south: bounds.getSouth(),
+          north: bounds.getNorth(),
+          west: bounds.getWest(),
+          east: bounds.getEast(),
+        });
+
+        incidents?.forEach((i) => addMarker(i));
+      } catch (err) {
+        console.error("Failed to fetch incidents:", err);
+      }
+    }, 300);
+
+    // Initial fetch
+    fetchInView();
+
+    // Fetch on moveend (pan/zoom)
+    mapRef.current.on("moveend", fetchInView);
+
+    return () => {
+      mapRef.current?.off("moveend", fetchInView);
+      // clear pending debounce if using lodash
+    };
+  }, [addMarker]);
 
   return (
     <div className="">
@@ -144,4 +137,4 @@ function Map() {
   );
 }
 
-export default Map;
+export default MapView;

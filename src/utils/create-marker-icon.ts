@@ -18,8 +18,8 @@ export function createIncidentMarkerIcon(status: IncidentStatus, size = 36) {
     popupAnchor: [0, -center],
     html: `
       <svg width="${size}" height="${size}">
-        <circle cx="${center}" cy="${center}" r="16" fill="${colors.outer}" />
-        <circle cx="${center}" cy="${center}" r="5" fill="${colors.inner}" />
+        <circle cx="${center}" cy="${center}" r="13" fill="${colors.outer}" />
+        <circle cx="${center}" cy="${center}" r="4" fill="${colors.inner}" />
       </svg>
     `,
   });
