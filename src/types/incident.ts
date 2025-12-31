@@ -1,3 +1,5 @@
+export type IncidentStatus = "active" | "in_progress" | "resolved";
+
 export type Incident = {
   id: number;
   user_id: string;
@@ -5,6 +7,18 @@ export type Incident = {
   content: string;
   lat: number;
   lng: number;
-  status: "open" | "pending" | "resolved";
+  status: IncidentStatus;
+  address_name: string;
+  address_display: string;
   created_at: string;
+};
+
+export type IncidentSummary = {
+  id: number;
+  user_id: string;
+  lat: number;
+  lng: number;
+  status: IncidentStatus;
+  address_name: string;
+  address_display: string;
 };

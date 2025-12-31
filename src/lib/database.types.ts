@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       incidents: {
         Row: {
+          address_display: string
+          address_name: string
           content: string
           created_at: string
           id: number
@@ -26,6 +28,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address_display?: string
+          address_name?: string
           content: string
           created_at?: string
           id?: number
@@ -36,6 +40,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address_display?: string
+          address_name?: string
           content?: string
           created_at?: string
           id?: number
@@ -55,7 +61,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      incident_status: "open" | "pending" | "resolved"
+      incident_status: "active" | "in_progress" | "resolved"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -183,7 +189,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      incident_status: ["open", "pending", "resolved"],
+      incident_status: ["active", "in_progress", "resolved"],
     },
   },
 } as const
