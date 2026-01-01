@@ -1,6 +1,6 @@
 import L, { LatLng } from "leaflet";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getIncidentsInBounds } from "../services/incidents/get-incidents";
+import { getIncidentsInBounds } from "../services/incidents/get-incidents-in-bounds";
 import type { IncidentSummary } from "../types/incident";
 import { createIncidentMarkerIcon } from "../utils/create-marker-icon";
 import debounce from "../utils/debounce";
