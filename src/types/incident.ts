@@ -19,6 +19,4 @@ export type IncidentSummary = {
   lat: number;
   lng: number;
   status: IncidentStatus;
-  address_name: string;
-  address_display: string;
 };

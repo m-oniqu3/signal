@@ -18,6 +18,10 @@ The map is optimized to scale as the number of incidents grows by only
 loading data relevant to the visible area.
 
 
+## Ideas
+- different color markers for the user 
+
+
 ## Database Types
 
 After updating the Supabase schema, regenerate types:
